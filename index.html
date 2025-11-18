@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>ครูเอฟ จินตคณิต</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    :root {
+      --bg: #f2f7ff;
+      --bg-dark: #050816;
+      --card-bg: #ffffff;
+      --card-bg-dark: #0f172a;
+      --text-main: #0f172a;
+      --text-sub: #64748b;
+      --text-main-dark: #e5e7eb;
+      --text-sub-dark: #9ca3af;
+
+      --accent: #fb923c;
+      --accent-soft: #fed7aa;
+      --accent-strong: #f97316;
+
+      --accent2: #38bdf8;
+      --border-soft: rgba(148,163,184,0.35);
+      --shadow-soft: 0 10px 30px rgba(15,23,42,0.12);
+
+      --btn-muted: #6b7280;
+      --btn-danger: #ef4444;
+      --btn-secondary: #9ca3af;
+      --btn-success: #22c55e;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 20px;
+      background: var(--bg);
+      color: var(--text-main);
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    body.dark-mode {
+      background: radial-gradient(circle at top, #1f2937 0, #020617 55%, #000 100%);
+      color: var(--text-main-dark);
+    }
+
+    body.pseudo-fullscreen {
+      padding-top: 0;
+      justify-content: center;
+      align-items: stretch;
+    }
+    body.pseudo-fullscreen .box {
+      width: 100vw;
+      max-width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+    }
+
+    .box {
+      background: var(--card-bg);
+      border-radius: 20px;
+      box-shadow: var(--shadow-soft);
+      width: 94%;
+      max-width: 480px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 18px 16px 22px;
+      border: 1px solid var(--border-soft);
+      position: relative;
+      overflow: hidden;
+    }
+
+    body.dark-mode .box {
+      background: linear-gradient(145deg, rgba(15,23,42,0.96), rgba(15,23,42,0.98));
+      border-color: rgba(148,163,184,0.4);
+    }
+
+    .box::before {
+      content: "";
+      position: absolute;
+      top: -60px;
+      left: -80px;
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, rgba(251,146,60,0.35), transparent 70%);
+      pointer-events: none;
+      z-index: -1;
+    }
+    body.dark-mode .box::before {
+      background: radial-gradient(circle, rgba(56,189,248,0.3), transparent 70%);
+    }
+
+    .logo {
+      width: 120px;
+      max-width: 40%;
+      margin-bottom: 4px;
+      border-radius: 16px;
+    }
+
+    h2 {
+      margin: 4px 0 2px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      margin-bottom: 8px;
+    }
+    body.dark-mode .subtitle {
+      color: var(--text-sub-dark);
+    }
+
+    .settings-wrapper {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 0.35s ease, opacity 0.35s ease;
+      width: 100%;
+    }
+    .settings-wrapper.open {
+      max-height: 820px;
+      opacity: 1;
+    }
+
+    .settings {
+      background: rgba(248,250,252,0.95);
+      padding: 10px;
+      border-radius: 12px;
+      text-align: left;
+      font-size: 0.82rem;
+      margin-bottom: 10px;
+      border: 1px solid rgba(148,163,184,0.3);
+    }
+    body.dark-mode .settings {
+      background: rgba(15,23,42,0.95);
+      border-color: rgba(148,163,184,0.45);
+    }
+
+    .settings-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-sub);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    body.dark-mode .settings-title {
+      color: var(--text-sub-dark);
+    }
+
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+    .settings-row label {
+      flex: 1.3;
+    }
+    .settings-row select,
+    .settings-row input[type="number"] {
+      flex: 1;
+      padding: 4px 6px;
+      border-radius: 10px;
+      border: 1px solid #cbd5f5;
+      font-size: 0.8rem;
+      box-sizing: border-box;
+      background: #ffffff;
+    }
+    body.dark-mode .settings-row select,
+    body.dark-mode .settings-row input[type="number"] {
+      background: #020617;
+      border-color: #1f2937;
+      color: var(--text-main-dark);
+    }
+
+    .settings-row input[type="checkbox"] {
+      margin-right: 4px;
+    }
+
+    .choice-group {
+      flex: 2;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 8px;
+      font-size: 0.8rem;
+    }
+    .choice-group label {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      flex: 0 0 auto;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(148,163,184,0.12);
+    }
+    body.dark-mode .choice-group label {
+      background: rgba(15,23,42,0.9);
+    }
+
+    #numberDisplay {
+      font-size: 3.2rem;
+      font-weight: 800;
+      height: 7.5rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 14px 0;
+      color: #0f172a;
+      text-shadow: 0 0 10px rgba(248,250,252,0.7);
+      background: radial-gradient(circle, rgba(251,191,36,0.12), transparent 70%);
+      border-radius: 16px;
+    }
+    body.dark-mode #numberDisplay {
+      color: #f9fafb;
+      text-shadow: 0 0 16px rgba(250,250,250,0.7);
+      background: radial-gradient(circle, rgba(56,189,248,0.18), transparent 70%);
+    }
+
+    .anim-pop  { animation: anim-pop 0.28s ease-out; }
+    .anim-fade { animation: anim-fade 0.35s ease-out; }
+    .anim-slide{ animation: anim-slide 0.32s ease-out; }
+    .anim-flash{ animation: anim-flash 0.25s ease-out; }
+
+    @keyframes anim-pop {
+      0%   { transform: scale(0.6); opacity: 0; }
+      60%  { transform: scale(1.1); opacity: 1; }
+      100% { transform: scale(1.0); }
+    }
+    @keyframes anim-fade {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    @keyframes anim-slide {
+      0%   { transform: translateY(30px); opacity: 0; }
+      100% { transform: translateY(0);   opacity: 1; }
+    }
+    @keyframes anim-flash {
+      0%   { opacity: 0; transform: scale(0.9); }
+      30%  { opacity: 1; transform: scale(1.05); }
+      100% { opacity: 1; transform: scale(1.0); }
+    }
+
+    #timerDisplay {
+      font-size: 0.9rem;
+      color: #ef4444;
+      min-height: 1.1em;
+      margin-bottom: 4px;
+    }
+
+    .small-note {
+      margin-top: 8px;
+      font-size: 0.76rem;
+      color: var(--text-sub);
+      text-align: left;
+    }
+    body.dark-mode .small-note {
+      color: var(--text-sub-dark);
+    }
+
+    .controls-row {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .round-btn {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      border: none;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      box-shadow: 0 4px 10px rgba(15,23,42,0.25);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.15s;
+    }
+    .round-btn:active {
+      transform: translateY(1px) scale(0.97);
+      box-shadow: 0 2px 6px rgba(15,23,42,0.3);
+      opacity: 0.9;
+    }
+
+    #settingsToggle { background: #6b7280; }
+    #startBtn      { background: var(--accent-strong); }
+    #stopBtn       { background: var(--btn-danger); }
+    #resetBtn      { background: var(--btn-secondary); }
+    #fullscreenBtn { background: var(--btn-success); }
+
+    body.dark-mode #settingsToggle { background: #4b5563; }
+    body.dark-mode #resetBtn       { background: #6b7280; }
+
+    body.theme-blue {
+      --accent: #38bdf8;
+      --accent-soft: #e0f2fe;
+      --accent-strong: #0ea5e9;
+      --bg: #e0f2fe;
+    }
+    body.theme-orange {
+      --accent: #fb923c;
+      --accent-soft: #ffedd5;
+      --accent-strong: #f97316;
+      --bg: #fef3c7;
+    }
+    body.theme-purple {
+      --accent: #c084fc;
+      --accent-soft: #f3e8ff;
+      --accent-strong: #a855f7;
+      --bg: #f5f3ff;
+    }
+    body.theme-green {
+      --accent: #4ade80;
+      --accent-soft: #dcfce7;
+      --accent-strong: #22c55e;
+      --bg: #ecfdf5;
+    }
+
+    body.dark-mode.theme-blue,
+    body.dark-mode.theme-orange,
+    body.dark-mode.theme-purple,
+    body.dark-mode.theme-green {
+      --bg: #020617;
+    }
+
+    .dark-toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+  </style>
+</head>
+<body class="theme-orange">
+<div class="box" id="appBox">
+  <h2>ครูเอฟ จินตคณิต</h2>
+  <div class="subtitle">แอปฝึกคิดเลขเร็วแบบเกม จินตคณิต</div>
+
+  <div id="settingsWrapper" class="settings-wrapper">
+    <div class="settings">
+      <div class="settings-title">การตั้งค่าโจทย์</div>
+
+      <div class="settings-row">
+        <label for="digitSelect">จำนวนหลักของตัวเลข</label>
+        <select id="digitSelect">
+          <option value="1">1 หลัก (1–9)</option>
+          <option value="2" selected>2 หลัก (10–99)</option>
+          <option value="3">3 หลัก (100–999)</option>
+          <option value="4">4 หลัก (1000–9999)</option>
+        </select>
+      </div>
+
+      <div class="settings-row">
+        <label for="countInput">จำนวนตัวเลขต่อ 1 ข้อ</label>
+        <input type="number" id="countInput" value="5" min="1" max="99">
+      </div>
+
+      <div class="settings-row">
+        <label for="questionCountInput">จำนวนข้อใน 1 รอบ</label>
+        <input type="number" id="questionCountInput" value="5" min="1" max="99">
+      </div>
+
+      <div class="settings-row">
+        <label for="speedInput">ความเร็วแสดงตัวเลข (ms)</label>
+        <input type="number" id="speedInput" value="800" min="1" max="5000">
+      </div>
+
+      <div class="settings-row">
+        <label for="signModeSelect">โหมดเครื่องหมาย</label>
+        <select id="signModeSelect">
+          <option value="add">บวกอย่างเดียว</option>
+          <option value="addsub" selected>บวกลบ</option>
+        </select>
+      </div>
+
+      <div class="settings-title">การแสดงผล</div>
+
+      <div class="settings-row">
+        <label>ขนาดตัวเลข</label>
+        <div class="choice-group" id="sizeGroup">
+          <label><input type="radio" name="sizeOption" value="small"> เล็ก</label>
+          <label><input type="radio" name="sizeOption" value="medium" checked> กลาง</label>
+          <label><input type="radio" name="sizeOption" value="large"> ใหญ่</label>
+          <label><input type="radio" name="sizeOption" value="xl"> XL</label>
+          <label><input type="radio" name="sizeOption" value="xxl"> XXL</label>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <label>ธีมสี</label>
+        <div class="choice-group" id="themeGroup">
+          <label><input type="radio" name="themeOption" value="orange" checked> ส้มสดใส</label>
+          <label><input type="radio" name="themeOption" value="blue"> ฟ้าสดใส</label>
+          <label><input type="radio" name="themeOption" value="purple"> ม่วง–ชมพู</label>
+          <label><input type="radio" name="themeOption" value="green"> เขียวนีออน</label>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <label>แอนิเมชันตัวเลข</label>
+        <div class="choice-group" id="animGroup">
+          <label><input type="radio" name="animOption" value="pop" checked> Pop</label>
+          <label><input type="radio" name="animOption" value="fade"> Fade</label>
+          <label><input type="radio" name="animOption" value="slide"> Slide</label>
+          <label><input type="radio" name="animOption" value="flash"> Flash</label>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <label class="dark-toggle-label">
+          <input type="checkbox" id="darkModeToggle">
+          Dark Mode
+        </label>
+      </div>
+
+      <div class="settings-title">โหมดแข่งขัน & เสียง</div>
+
+      <div class="settings-row">
+        <label>
+          <input type="checkbox" id="competitionCheck">
+          โหมดแข่งขันจับเวลา
+        </label>
+        <input type="number" id="competitionSeconds" value="60" min="5" max="600"
+               title="เวลาการแข่งขัน (วินาที)">
+      </div>
+
+      <div class="settings-row">
+        <label>
+          <input type="checkbox" id="voiceCheck">
+          เปิดเสียงอ่านตัวเลข/คำตอบ
+        </label>
+        <select id="voiceLangSelect">
+          <option value="th-TH">ไทย (th-TH)</option>
+          <option value="en-US" selected>English (en-US)</option>
+          <option value="ja-JP">日本語 (ja-JP)</option>
+        </select>
+      </div>
+
+      <div class="small-note">
+        * ผลรวมระหว่างทางจะไม่ติดลบ และไม่สุ่มเลข 0<br>
+        * “พร้อม!! → เริ่ม!!” แล้วเว้น 1 วินาทีก่อนข้อที่ 1<br>
+        * “ตอบ” กระพริบ 3 ครั้ง (~3 วิ) แล้วเว้น 1 วิ ก่อนเฉลย<br>
+        * อ่านออกเสียงลำดับข้อ + คำตอบ ผูกสปีดกับความเร็วตัวเลข<br>
+        * การตั้งค่าทั้งหมดจะถูกจำไว้ในเครื่องอัตโนมัติ
+      </div>
+    </div>
+  </div>
+
+  <div id="timerDisplay"></div>
+  <div id="numberDisplay">เริ่ม?</div>
+
+  <div class="controls-row">
+    <button id="settingsToggle"  class="round-btn">ตั้งค่า</button>
+    <button id="startBtn"       class="round-btn">เริ่ม</button>
+    <button id="stopBtn"        class="round-btn">หยุด</button>
+    <button id="resetBtn"       class="round-btn">รีเซ็ต</button>
+    <button id="fullscreenBtn"  class="round-btn">เต็มจอ</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const STORAGE_KEY = "kruF_jintakanit_settings_v2";
+
+  let sequence = [];
+  let totalAnswer = 0;
+  let index = 0;
+  let showTimer = null;
+  let running = false;
+
+  let competitionTimer = null;
+  let remainingTime = 0;
+
+  let audioCtx = null;
+  let questionNumber = 0;
+  let maxQuestions = 1;
+
+  const display = document.getElementById("numberDisplay");
+  const digitSelect = document.getElementById("digitSelect");
+  const countInput = document.getElementById("countInput");
+  const questionCountInput = document.getElementById("questionCountInput");
+  const speedInput = document.getElementById("speedInput");
+  const signModeSelect = document.getElementById("signModeSelect");
+  const competitionCheck = document.getElementById("competitionCheck");
+  const competitionSecondsInput = document.getElementById("competitionSeconds");
+  const timerDisplay = document.getElementById("timerDisplay");
+  const voiceCheck = document.getElementById("voiceCheck");
+  const voiceLangSelect = document.getElementById("voiceLangSelect");
+
+  const settingsToggle = document.getElementById("settingsToggle");
+  const settingsWrapper = document.getElementById("settingsWrapper");
+  const fullscreenBtn = document.getElementById("fullscreenBtn");
+  const darkModeToggle = document.getElementById("darkModeToggle");
+
+  const sizeRadios  = document.querySelectorAll('input[name="sizeOption"]');
+  const themeRadios = document.querySelectorAll('input[name="themeOption"]');
+  const animRadios  = document.querySelectorAll('input[name="animOption"]');
+
+  let settingsOpen = false;
+
+  function applyTheme(themeVal) {
+    document.body.classList.remove("theme-blue","theme-orange","theme-purple","theme-green");
+    if (themeVal === "blue") document.body.classList.add("theme-blue");
+    else if (themeVal === "purple") document.body.classList.add("theme-purple");
+    else if (themeVal === "green") document.body.classList.add("theme-green");
+    else document.body.classList.add("theme-orange");
+  }
+
+  function applyDarkModeClass() {
+    if (darkModeToggle.checked) document.body.classList.add("dark-mode");
+    else document.body.classList.remove("dark-mode");
+  }
+
+  function applyNumberSize() {
+    const selected = document.querySelector('input[name="sizeOption"]:checked');
+    const val = selected ? selected.value : "medium";
+    let sizeRem = 3.2;
+    if      (val === "small") sizeRem = 2.4;
+    else if (val === "medium")sizeRem = 3.2;
+    else if (val === "large") sizeRem = 4.0;
+    else if (val === "xl")    sizeRem = 5.0;
+    else if (val === "xxl")   sizeRem = 6.0;
+    display.style.fontSize = sizeRem + "rem";
+  }
+
+  function getSelectedAnimationClass() {
+    const sel = document.querySelector('input[name="animOption"]:checked');
+    const val = sel ? sel.value : "pop";
+    if (val === "fade")  return "anim-fade";
+    if (val === "slide") return "anim-slide";
+    if (val === "flash") return "anim-flash";
+    return "anim-pop";
+  }
+
+  function animateDisplayOnce() {
+    const cls = getSelectedAnimationClass();
+    display.classList.remove("anim-pop","anim-fade","anim-slide","anim-flash");
+    void display.offsetWidth;
+    display.classList.add(cls);
+  }
+
+  function initAudio() {
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) audioCtx = new AC();
+    }
+    if (audioCtx && audioCtx.state === "suspended") {
+      audioCtx.resume();
+    }
+  }
+
+  function playBeep(freq = 800, duration = 0.12) {
+    try {
+      initAudio();
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.3, audioCtx.currentTime + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration + 0.02);
+    } catch(e) {}
+  }
+
+  function playAnswerFx() {
+    playBeep(900, 0.12);
+    setTimeout(() => playBeep(1200, 0.12), 130);
+  }
+
+  function clampMs(v) {
+    if (isNaN(v)) v = 800;
+    return Math.max(1, Math.min(5000, v));
+  }
+
+  function getSpeechRate() {
+    const showMs = clampMs(parseInt(speedInput.value));
+    let rate = 1000 / showMs;
+    return Math.min(2.0, Math.max(0.5, rate));
+  }
+
+  function speakText(text, langOverride) {
+    if (!voiceCheck.checked) return;
+    if (!("speechSynthesis" in window)) return;
+
+    const lang = langOverride || (voiceLangSelect.value || "en-US");
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = lang;
+    utter.rate = getSpeechRate();
+    window.speechSynthesis.speak(utter);
+  }
+
+  function speakNumber(n) {
+    const lang = voiceLangSelect.value || "en-US";
+    const absStr = Math.abs(n).toString();
+    let text;
+    if (n < 0) {
+      if (lang.startsWith("th"))      text = "ลบ " + absStr;
+      else if (lang.startsWith("ja")) text = "マイナス " + absStr;
+      else                            text = "minus " + absStr;
+    } else {
+      text = absStr;
+    }
+    speakText(text, lang);
+  }
+
+  function speakQuestionNumber(q) {
+    const lang = voiceLangSelect.value || "en-US";
+    let text;
+    if (lang.startsWith("th"))      text = "ข้อที่ " + q;
+    else if (lang.startsWith("ja")) text = "だい " + q + " もん";
+    else                            text = "Question " + q;
+    speakText(text, lang);
+  }
+
+  function speakAnswer(ans) {
+    const lang = voiceLangSelect.value || "en-US";
+    const absStr = Math.abs(ans).toString();
+    let numText;
+    if (ans < 0) {
+      if (lang.startsWith("th"))      numText = "ลบ " + absStr;
+      else if (lang.startsWith("ja")) numText = "マイナス " + absStr;
+      else                            numText = "minus " + absStr;
+    } else {
+      numText = absStr;
+    }
+
+    let full;
+    if (lang.startsWith("th"))      full = "คำตอบ " + numText;
+    else if (lang.startsWith("ja")) full = "こたえ " + numText;
+    else                            full = "Answer " + numText;
+
+    speakText(full, lang);
+  }
+
+  function saveSettings() {
+    try {
+      const sizeSel  = document.querySelector('input[name="sizeOption"]:checked');
+      const themeSel = document.querySelector('input[name="themeOption"]:checked');
+      const animSel  = document.querySelector('input[name="animOption"]:checked');
+
+      const data = {
+        digits: digitSelect.value,
+        countPerQuestion: countInput.value,
+        questionCount: questionCountInput.value,
+        speed: speedInput.value,
+        signMode: signModeSelect.value,
+        competitionEnabled: competitionCheck.checked,
+        competitionSeconds: competitionSecondsInput.value,
+        voiceEnabled: voiceCheck.checked,
+        voiceLang: voiceLangSelect.value,
+        numberSize: sizeSel ? sizeSel.value : "medium",
+        theme: themeSel ? themeSel.value : "orange",
+        animation: animSel ? animSel.value : "pop",
+        darkMode: darkModeToggle.checked
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch(e) {}
+  }
+
+  function loadSettings() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        applyTheme("orange");
+        applyDarkModeClass();
+        applyNumberSize();
+        return;
+      }
+      const data = JSON.parse(raw);
+
+      if (data.digits) digitSelect.value = data.digits;
+      if (data.countPerQuestion) countInput.value = data.countPerQuestion;
+      if (data.questionCount) questionCountInput.value = data.questionCount;
+      if (data.speed) speedInput.value = data.speed;
+      if (data.signMode) signModeSelect.value = data.signMode;
+      if (typeof data.competitionEnabled === "boolean") competitionCheck.checked = data.competitionEnabled;
+      if (data.competitionSeconds) competitionSecondsInput.value = data.competitionSeconds;
+      if (typeof data.voiceEnabled === "boolean") voiceCheck.checked = data.voiceEnabled;
+      if (data.voiceLang) voiceLangSelect.value = data.voiceLang;
+
+      if (data.numberSize) {
+        const r = document.querySelector('input[name="sizeOption"][value="' + data.numberSize + '"]');
+        if (r) r.checked = true;
+      }
+      if (data.theme) {
+        const r = document.querySelector('input[name="themeOption"][value="' + data.theme + '"]');
+        if (r) r.checked = true;
+        applyTheme(data.theme);
+      } else {
+        applyTheme("orange");
+      }
+      if (data.animation) {
+        const r = document.querySelector('input[name="animOption"][value="' + data.animation + '"]');
+        if (r) r.checked = true;
+      }
+      if (typeof data.darkMode === "boolean") {
+        darkModeToggle.checked = data.darkMode;
+      }
+      applyDarkModeClass();
+      applyNumberSize();
+    } catch(e) {
+      applyTheme("orange");
+      applyDarkModeClass();
+      applyNumberSize();
+    }
+  }
+
+  function attachSettingChangeListeners() {
+    const elems = [
+      digitSelect, countInput, questionCountInput, speedInput,
+      signModeSelect, competitionCheck, competitionSecondsInput,
+      voiceCheck, voiceLangSelect, darkModeToggle
+    ];
+    elems.forEach(el => {
+      if (!el) return;
+      el.addEventListener("change", saveSettings);
+      el.addEventListener("input",  saveSettings);
+    });
+
+    sizeRadios.forEach(r => r.addEventListener("change", () => {
+      applyNumberSize(); saveSettings();
+    }));
+    themeRadios.forEach(r => r.addEventListener("change", () => {
+      applyTheme(r.value); saveSettings();
+    }));
+    animRadios.forEach(r => r.addEventListener("change", saveSettings));
+  }
+
+  function toggleFullscreen() {
+    const isPseudo = document.body.classList.contains("pseudo-fullscreen");
+
+    if (!isPseudo) {
+      document.body.classList.add("pseudo-fullscreen");
+      fullscreenBtn.textContent = "ออก";
+
+      const elem = document.documentElement;
+      try {
+        if (elem.requestFullscreen) elem.requestFullscreen();
+        else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+      } catch(e) {}
+    } else {
+      document.body.classList.remove("pseudo-fullscreen");
+      fullscreenBtn.textContent = "เต็มจอ";
+
+      try {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      } catch(e) {}
+    }
+  }
+
+  fullscreenBtn.addEventListener("click", toggleFullscreen);
+
+  function startCompetitionIfNeeded() {
+    if (competitionTimer) {
+      clearInterval(competitionTimer);
+      competitionTimer = null;
+    }
+    timerDisplay.textContent = "";
+
+    if (!competitionCheck.checked) return;
+
+    let sec = parseInt(competitionSecondsInput.value);
+    if (isNaN(sec)) sec = 60;
+    sec = Math.max(5, Math.min(600, sec));
+
+    remainingTime = sec;
+    timerDisplay.textContent = "เวลา: " + remainingTime + " วินาที";
+
+    competitionTimer = setInterval(() => {
+      remainingTime--;
+      if (remainingTime <= 0) {
+        clearInterval(competitionTimer);
+        competitionTimer = null;
+        timerDisplay.textContent = "หมดเวลา!";
+        running = false;
+      } else {
+        timerDisplay.textContent = "เวลา: " + remainingTime + " วินาที";
+      }
+    }, 1000);
+  }
+
+  function generateSequence() {
+    sequence = [];
+    totalAnswer = 0;
+    index = 0;
+
+    const digits = parseInt(digitSelect.value) || 1;
+    let count = parseInt(countInput.value);
+    if (isNaN(count)) count = 5;
+    count = Math.max(1, Math.min(99, count));
+
+    const signMode = signModeSelect.value;
+    let runningSum = 0;
+
+    for (let i = 0; i < count; i++) {
+      let n;
+      while (true) {
+        const maxAbs = Math.pow(10, digits) - 1;
+        const minAbs = (digits === 1) ? 1 : Math.pow(10, digits - 1);
+        const abs = Math.floor(Math.random() * (maxAbs - minAbs + 1)) + minAbs;
+
+        let sign = 1;
+        if (signMode === "addsub") sign = Math.random() < 0.5 ? -1 : 1;
+        if (signMode === "add") sign = 1;
+
+        n = abs * sign;
+
+        if (runningSum + n >= 0) break;
+      }
+      sequence.push(n);
+      runningSum += n;
+    }
+
+    totalAnswer = runningSum;
+  }
+
+  function showSequence() {
+    if (!running) return;
+
+    if (index < sequence.length) {
+      const n = sequence[index];
+      display.textContent = n.toString();
+      animateDisplayOnce();
+
+      const freq = n >= 0 ? 1000 : 500;
+      playBeep(freq, 0.1);
+      speakNumber(n);
+
+      index++;
+
+      const showMs  = clampMs(parseInt(speedInput.value));
+      const blankMs = Math.min(200, Math.floor(showMs / 3));
+
+      showTimer = setTimeout(() => {
+        if (!running) return;
+        display.textContent = "";
+        display.classList.remove("anim-pop","anim-fade","anim-slide","anim-flash");
+        showTimer = setTimeout(showSequence, blankMs);
+      }, showMs);
+    } else {
+      startAnswerPromptPhase();
+    }
+  }
+
+  function runCountdownThenStart() {
+    const steps = ["พร้อม!!", "เริ่ม!!"];
+    let idx = 0;
+
+    function nextStep() {
+      if (!running) return;
+      const txt = steps[idx];
+      display.textContent = txt;
+      animateDisplayOnce();
+      speakText(txt);
+
+      if (txt === "พร้อม!!") playBeep(750, 0.16);
+      else if (txt === "เริ่ม!!") playBeep(1100, 0.18);
+
+      idx++;
+      if (idx < steps.length) {
+        showTimer = setTimeout(nextStep, 700);
+      } else {
+        showTimer = setTimeout(() => {
+          if (!running) return;
+          startNewQuestion();
+        }, 1000);
+      }
+    }
+
+    nextStep();
+  }
+
+  function startNewQuestion() {
+    if (!running) return;
+    generateSequence();
+    display.textContent = "ข้อที่ " + questionNumber;
+    animateDisplayOnce();
+    speakQuestionNumber(questionNumber);
+
+    const headerMs = 1000;
+    showTimer = setTimeout(() => {
+      if (!running) return;
+      index = 0;
+      showSequence();
+    }, headerMs);
+  }
+
+  function startAnswerPromptPhase() {
+    if (!running) return;
+    let blinkCount = 0;
+    const totalBlinks = 6;      // on/off 3 รอบ
+    const blinkInterval = 500;  // รวม ~3 วิ
+
+    function blink() {
+      if (!running) return;
+      const showText = (blinkCount % 2 === 0);
+      display.textContent = showText ? "ตอบ" : "";
+
+      if (showText) {
+        playBeep(950, 0.08);
+      }
+
+      blinkCount++;
+      if (blinkCount < totalBlinks) {
+        showTimer = setTimeout(blink, blinkInterval);
+      } else {
+        showTimer = setTimeout(() => {
+          if (!running) return;
+          showAnswerThenNext();
+        }, 1000); // เว้น 1 วิ ก่อนเฉลย
+      }
+    }
+
+    blink();
+  }
+
+  function showAnswerThenNext() {
+    if (!running) return;
+    display.textContent = totalAnswer.toString();
+    animateDisplayOnce();
+    playAnswerFx();
+    speakAnswer(totalAnswer);
+
+    const delayNextQuestion = 2000;
+    showTimer = setTimeout(() => {
+      if (!running) return;
+      questionNumber++;
+      if (questionNumber > maxQuestions) {
+        running = false;
+        display.textContent = "ครบ " + maxQuestions + " ข้อแล้ว";
+        animateDisplayOnce();
+      } else {
+        startNewQuestion();
+      }
+    }, delayNextQuestion);
+  }
+
+  function startAll() {
+    running = true;
+    if (showTimer) clearTimeout(showTimer);
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+
+    questionNumber = 1;
+
+    let qc = parseInt(questionCountInput.value);
+    if (isNaN(qc)) qc = 5;
+    maxQuestions = Math.max(1, Math.min(99, qc));
+
+    applyNumberSize();
+    startCompetitionIfNeeded();
+    runCountdownThenStart();
+  }
+
+  function stopShowing() {
+    running = false;
+    if (showTimer) clearTimeout(showTimer);
+    showTimer = null;
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  }
+
+  function resetAll() {
+    stopShowing();
+    sequence = [];
+    totalAnswer = 0;
+    index = 0;
+    questionNumber = 0;
+    display.textContent = "เริ่ม?";
+    display.classList.remove("anim-pop","anim-fade","anim-slide","anim-flash");
+    if (competitionTimer) clearInterval(competitionTimer);
+    competitionTimer = null;
+    remainingTime = 0;
+    timerDisplay.textContent = "";
+    applyNumberSize();
+  }
+
+  document.getElementById("startBtn").addEventListener("click", startAll);
+  document.getElementById("stopBtn").addEventListener("click", stopShowing);
+  document.getElementById("resetBtn").addEventListener("click", resetAll);
+
+  settingsToggle.addEventListener("click", () => {
+    settingsOpen = !settingsOpen;
+    if (settingsOpen) settingsWrapper.classList.add("open");
+    else settingsWrapper.classList.remove("open");
+  });
+
+  darkModeToggle.addEventListener("change", () => {
+    applyDarkModeClass();
+    saveSettings();
+  });
+
+  attachSettingChangeListeners();
+  loadSettings();
+
+})();
+</script>
+</body>
+</html>
