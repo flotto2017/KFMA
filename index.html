@@ -347,6 +347,7 @@
 </head>
 <body class="theme-orange">
 <div class="box" id="appBox">
+  <img class="logo" src="logo.png" alt="ครูเอฟ จินตคณิต Logo">
   <h2>ครูเอฟ จินตคณิต</h2>
   <div class="subtitle">แอปฝึกคิดเลขเร็วแบบเกม จินตคณิต</div>
 
@@ -444,8 +445,8 @@
           เปิดเสียงอ่านตัวเลข/คำตอบ
         </label>
         <select id="voiceLangSelect">
-          <option value="th-TH">ไทย (th-TH)</option>
-          <option value="en-US" selected>English (en-US)</option>
+          <option value="th-TH" selected>ไทย (th-TH)</option>
+          <option value="en-US">English (en-US)</option>
           <option value="ja-JP">日本語 (ja-JP)</option>
         </select>
       </div>
@@ -770,6 +771,15 @@
   }
 
   fullscreenBtn.addEventListener("click", toggleFullscreen);
+  function handleFullscreenChange() {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      document.body.classList.remove("pseudo-fullscreen");
+      fullscreenBtn.textContent = "เต็มจอ";
+    }
+  }
+
+  document.addEventListener("fullscreenchange", handleFullscreenChange);
+  document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
 
   function startCompetitionIfNeeded() {
     if (competitionTimer) {
