@@ -441,20 +441,52 @@
       <div class="settings-row">
         <label>
           <input type="checkbox" id="voiceCheck">
-          เปิดเสียงอ่านตัวเลข/คำตอบ
+          เปิดเสียงอ่านโจทย์และข้อความ
         </label>
         <select id="voiceLangSelect">
-          <option value="th-TH">ไทย (th-TH)</option>
-          <option value="en-US" selected>English (en-US)</option>
+          <option value="th-TH" selected>ไทย (th-TH)</option>
+          <option value="en-US">English (en-US)</option>
           <option value="ja-JP">日本語 (ja-JP)</option>
         </select>
+      </div>
+
+      <div style="max-height: 180px; overflow-y: auto;" aria-label="ตั้งค่าเสียงอ่าน">
+      <div class="settings-row">
+        <label for="voiceSelect">เสียงของอุปกรณ์</label>
+        <select id="voiceSelect"><option value="">อัตโนมัติ</option></select>
+      </div>
+      <div class="settings-row">
+        <label for="speechRate">ความเร็วเสียงอ่าน</label>
+        <select id="speechRate"><option value="0.75">ช้า</option><option value="0.9" selected>ปกติ</option><option value="1.1">เร็ว</option></select>
+      </div>
+      <div class="settings-row">
+        <label for="speechVolume">ความดังเสียงอ่าน</label>
+        <input id="speechVolume" type="range" min="0" max="1" step="0.1" value="0.8">
+      </div>
+      <div class="settings-row">
+        <label for="speechSample">ตัวอย่างข้อความภาษาไทย</label>
+        <select id="speechSample">
+          <option value="ready">ก่อนเริ่มเกม</option>
+          <option value="question">อ่านลำดับข้อ</option>
+          <option value="answer">อ่านเฉลย</option>
+          <option value="correct">ชมเมื่อตอบถูก</option>
+          <option value="incorrect">ให้กำลังใจเมื่อตอบผิด</option>
+          <option value="complete">สรุปจบเกม</option>
+          <option value="timeout">หมดเวลา</option>
+        </select>
+        <button id="testSpeechBtn" type="button">ฟังตัวอย่าง</button>
+        <button id="stopSpeechBtn" type="button">หยุดเสียงตัวอย่าง</button>
+      </div>
+      <p id="speechStatus" class="small-note" role="status" aria-live="polite"></p>
+      <div class="small-note">ใช้เสียงสังเคราะห์ของอุปกรณ์ เสียงแต่ละเครื่องอาจต่างกัน<br>
+        คำชมและคำให้กำลังใจเป็นตัวอย่างสำหรับเชื่อมระบบตรวจคำตอบในอนาคต</div>
       </div>
 
       <div class="small-note">
         * ผลรวมระหว่างทางจะไม่ติดลบ และไม่สุ่มเลข 0<br>
         * “พร้อม!! → เริ่ม!!” แล้วเว้น 1 วินาทีก่อนข้อที่ 1<br>
         * “ตอบ” กระพริบ 3 ครั้ง (~3 วิ) แล้วเว้น 1 วิ ก่อนเฉลย<br>
-        * อ่านออกเสียงลำดับข้อ + คำตอบ ผูกสปีดกับความเร็วตัวเลข<br>
+        * ความเร็วเสียงปรับแยกได้ เสียงใหม่แทนเสียงเก่าโดยไม่สะสมคิว<br>
         * การตั้งค่าทั้งหมดจะถูกจำไว้ในเครื่องอัตโนมัติ
       </div>
     </div>
@@ -472,6 +504,7 @@
   </div>
 </div>
 
+<script src="speech.js"></script>
 <script>
 (function(){
   "use strict";
@@ -502,6 +535,41 @@
   const timerDisplay = document.getElementById("timerDisplay");
   const voiceCheck = document.getElementById("voiceCheck");
   const voiceLangSelect = document.getElementById("voiceLangSelect");
+  const voiceSelect = document.getElementById("voiceSelect");
+  const speechRate = document.getElementById("speechRate");
+  const speechVolume = document.getElementById("speechVolume");
+  const speechStatus = document.getElementById("speechStatus");
+  const speaker = new KFMASpeech.Speaker(text => { speechStatus.textContent = text; });
+  function syncSpeaker() {
+    speaker.enabled = voiceCheck.checked;
+    speaker.lang = voiceLangSelect.value;
+    speaker.voiceURI = voiceSelect.value;
+    speaker.rate = Number(speechRate.value);
+    speaker.volume = Number(speechVolume.value);
+  }
+  let preferredVoice = '';
+  function refreshVoices() {
+    speaker.lang = voiceLangSelect.value;
+    const voices = speaker.voices();
+    voiceSelect.replaceChildren(new Option('อัตโนมัติ', ''));
+    voices.forEach(v => voiceSelect.add(new Option(v.name, v.voiceURI)));
+    voiceSelect.value = voices.some(v => v.voiceURI === preferredVoice) ? preferredVoice : '';
+    speechStatus.textContent = !speaker.supported ? 'เบราว์เซอร์นี้ไม่รองรับเสียงอ่าน' :
+      voices.length ? 'พร้อมทดสอบเสียงอ่าน กดฟังตัวอย่างได้เลย' : 'ไม่พบเสียงภาษาที่เลือก กรุณาติดตั้งเสียงในอุปกรณ์';
+  }
+  voiceSelect.addEventListener('change', () => { preferredVoice = voiceSelect.value; });
+  voiceLangSelect.addEventListener('change', () => { preferredVoice = ''; speaker.cancel(); refreshVoices(); });
+  voiceCheck.addEventListener('change', () => { if (!voiceCheck.checked) speaker.cancel(); });
+  document.getElementById('testSpeechBtn').addEventListener('click', () => {
+    if (running) { speechStatus.textContent = 'หยุดเกมก่อนทดสอบเสียงตัวอย่างนะ'; return; }
+    syncSpeaker();
+    speaker.event(document.getElementById('speechSample').value, {count: 5, answer: 12}, {preview: true});
+  });
+  document.getElementById('stopSpeechBtn').addEventListener('click', () => {
+    if (!running) speaker.cancel();
+  });
+  if (speaker.supported) window.speechSynthesis.addEventListener('voiceschanged', refreshVoices);
+
 
   const settingsToggle = document.getElementById("settingsToggle");
   const settingsWrapper = document.getElementById("settingsWrapper");
@@ -592,25 +660,18 @@
     return Math.max(1, Math.min(5000, v));
   }
 
-  function getSpeechRate() {
-    const showMs = clampMs(parseInt(speedInput.value));
-    let rate = 1000 / showMs;
-    return Math.min(2.0, Math.max(0.5, rate));
+  function speakText(text, langOverride) {
+    syncSpeaker();
+    return speaker.speak(text, {lang: langOverride || voiceLangSelect.value});
   }
 
-  function speakText(text, langOverride) {
-    if (!voiceCheck.checked) return;
-    if (!("speechSynthesis" in window)) return;
-
-    const lang = langOverride || (voiceLangSelect.value || "en-US");
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = lang;
-    utter.rate = getSpeechRate();
-    window.speechSynthesis.speak(utter);
+  function speakEvent(name, values = {}) {
+    syncSpeaker();
+    return speaker.event(name, values);
   }
 
   function speakNumber(n) {
-    const lang = voiceLangSelect.value || "en-US";
+    const lang = voiceLangSelect.value || "th-TH";
     const absStr = Math.abs(n).toString();
     let text;
     if (n < 0) {
@@ -620,20 +681,20 @@
     } else {
       text = absStr;
     }
-    speakText(text, lang);
+    return speakText(text, lang);
   }
 
   function speakQuestionNumber(q) {
-    const lang = voiceLangSelect.value || "en-US";
+    const lang = voiceLangSelect.value || "th-TH";
     let text;
     if (lang.startsWith("th"))      text = "ข้อที่ " + q;
     else if (lang.startsWith("ja")) text = "だい " + q + " もん";
     else                            text = "Question " + q;
-    speakText(text, lang);
+    return speakText(text, lang);
   }
 
   function speakAnswer(ans) {
-    const lang = voiceLangSelect.value || "en-US";
+    const lang = voiceLangSelect.value || "th-TH";
     const absStr = Math.abs(ans).toString();
     let numText;
     if (ans < 0) {
@@ -649,7 +710,7 @@
     else if (lang.startsWith("ja")) full = "こたえ " + numText;
     else                            full = "Answer " + numText;
 
-    speakText(full, lang);
+    return speakText(full, lang);
   }
 
   function saveSettings() {
@@ -668,6 +729,9 @@
         competitionSeconds: competitionSecondsInput.value,
         voiceEnabled: voiceCheck.checked,
         voiceLang: voiceLangSelect.value,
+        voiceURI: preferredVoice,
+        speechRate: speechRate.value,
+        speechVolume: speechVolume.value,
         numberSize: sizeSel ? sizeSel.value : "medium",
         theme: themeSel ? themeSel.value : "orange",
         animation: animSel ? animSel.value : "pop",
@@ -697,6 +761,9 @@
       if (data.competitionSeconds) competitionSecondsInput.value = data.competitionSeconds;
       if (typeof data.voiceEnabled === "boolean") voiceCheck.checked = data.voiceEnabled;
       if (data.voiceLang) voiceLangSelect.value = data.voiceLang;
+      preferredVoice = typeof data.voiceURI === 'string' ? data.voiceURI : '';
+      if (['0.75', '0.9', '1.1'].includes(data.speechRate)) speechRate.value = data.speechRate;
+      if (data.speechVolume != null && Number.isFinite(Number(data.speechVolume))) speechVolume.value = data.speechVolume;
 
       if (data.numberSize) {
         const r = document.querySelector('input[name="sizeOption"][value="' + data.numberSize + '"]');
@@ -729,7 +796,7 @@
     const elems = [
       digitSelect, countInput, questionCountInput, speedInput,
       signModeSelect, competitionCheck, competitionSecondsInput,
-      voiceCheck, voiceLangSelect, darkModeToggle
+      voiceCheck, voiceLangSelect, voiceSelect, speechRate, speechVolume, darkModeToggle
     ];
     elems.forEach(el => {
       if (!el) return;
@@ -794,6 +861,7 @@
         competitionTimer = null;
         timerDisplay.textContent = "หมดเวลา!";
         running = false;
+        speakEvent('timeout');
       } else {
         timerDisplay.textContent = "เวลา: " + remainingTime + " วินาที";
       }
@@ -872,7 +940,7 @@
       const txt = steps[idx];
       display.textContent = txt;
       animateDisplayOnce();
-      speakText(txt);
+      speakEvent(idx === 0 ? 'ready' : 'start');
 
       if (txt === "พร้อม!!") playBeep(750, 0.16);
       else if (txt === "เริ่ม!!") playBeep(1100, 0.18);
@@ -948,6 +1016,7 @@
       questionNumber++;
       if (questionNumber > maxQuestions) {
         running = false;
+        speakEvent('complete', {count: maxQuestions});
         display.textContent = "ครบ " + maxQuestions + " ข้อแล้ว";
         animateDisplayOnce();
       } else {
@@ -959,7 +1028,7 @@
   function startAll() {
     running = true;
     if (showTimer) clearTimeout(showTimer);
-    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    speaker.cancel();
 
     questionNumber = 1;
 
@@ -976,7 +1045,7 @@
     running = false;
     if (showTimer) clearTimeout(showTimer);
     showTimer = null;
-    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    speaker.cancel();
   }
 
   function resetAll() {
@@ -1011,6 +1080,7 @@
 
   attachSettingChangeListeners();
   loadSettings();
+  refreshVoices();
 
 })();
 </script>
