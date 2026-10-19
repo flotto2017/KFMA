@@ -64,13 +64,23 @@ with sync_playwright() as p:
     page.wait_for_timeout(150)
     assert page.locator('#numberDisplay').inner_text()=='เริ่ม?'
     assert page.evaluate('window.activeSpeech===null')
-    # An empty voice list must still attempt language-based OS speech.
-    page.evaluate('window.voiceList=[]')
+    # English/Japanese voices must never be substituted for missing Thai.
+    page.evaluate("window.voiceList=[{name:'English',lang:'en-US',voiceURI:'en'},{name:'Japanese',lang:'ja-JP',voiceURI:'ja'}]")
     page.click('#settingsToggle')
+    count=page.evaluate('spoken.length')
     page.click('#testSpeechBtn')
-    assert page.evaluate('spoken[spoken.length-1].lang') == 'th-TH'
-    assert page.evaluate('activeSpeech !== null')
-    page.wait_for_timeout(60)
+    assert page.evaluate('spoken.length') == count
+    assert page.evaluate('activeSpeech === null')
+    assert 'ไม่พบเสียงภาษาไทย' in page.locator('#speechStatus').inner_text()
+    for lang in ['en-US','ja-JP']:
+        result=page.evaluate("""async lang => {
+          const s=new KFMASpeech.Speaker(); s.enabled=true; s.lang=lang;
+          await s.speak('voice test'); return window.spoken.at(-1).lang;
+        }""",lang)
+        assert result == lang
+    page.evaluate('window.voiceList=[]')
+    page.click('#testSpeechBtn')
+    assert 'ไม่พบเสียงภาษาไทย' in page.locator('#speechStatus').inner_text()
     page.click('#startBtn')
     page.wait_for_function("document.querySelector('#numberDisplay').textContent==='ครบ 1 ข้อแล้ว'", timeout=15000)
     assert not errors, errors

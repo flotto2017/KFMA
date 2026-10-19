@@ -47,9 +47,11 @@
       }
       const voices = window.speechSynthesis.getVoices().filter(v =>
         languageCode(v.lang) === languageCode(lang));
-      // Mobile browsers can expose an empty voice list until the first utterance.
-      // Let the OS resolve utterance.lang instead of treating an empty list as failure.
-      if (!voices.length) this.onStatus('กำลังลองเสียงภาษาที่เลือกผ่านระบบของอุปกรณ์');
+      // Do not let the OS substitute a non-Thai default voice for Thai text.
+      if (languageCode(lang) === 'th' && !voices.length) {
+        this.onStatus('ไม่พบเสียงภาษาไทยในอุปกรณ์ จึงไม่ใช้เสียงภาษาอื่นแทน กรุณาติดตั้งเสียงไทยในระบบ แล้วเปิดเว็บใหม่');
+        return Promise.resolve();
+      }
       return new Promise(resolve => {
         const utterance = new SpeechSynthesisUtterance(String(text));
         const voice = voices.find(v => v.voiceURI === this.voiceURI) || voices.find(v => v.default) || voices[0];

@@ -477,7 +477,6 @@
         <button id="testSpeechBtn" type="button">ฟังตัวอย่าง</button>
         <button id="stopSpeechBtn" type="button">หยุดเสียงตัวอย่าง</button>
       </div>
-      <p id="speechStatus" class="small-note" role="status" aria-live="polite"></p>
       <div class="small-note">ใช้เสียงสังเคราะห์ของอุปกรณ์ เสียงแต่ละเครื่องอาจต่างกัน<br>
         คำชมและคำให้กำลังใจเป็นตัวอย่างสำหรับเชื่อมระบบตรวจคำตอบในอนาคต</div>
       </div>
@@ -492,6 +491,7 @@
     </div>
   </div>
 
+  <p id="speechStatus" class="small-note" role="status" aria-live="polite"></p>
   <div id="timerDisplay"></div>
   <div id="numberDisplay">เริ่ม?</div>
 
@@ -504,7 +504,7 @@
   </div>
 </div>
 
-<script src="speech.js?v=2"></script>
+<script src="speech.js?v=3"></script>
 <script>
 (function(){
   "use strict";
@@ -555,7 +555,7 @@
     voices.forEach(v => voiceSelect.add(new Option(v.name, v.voiceURI)));
     voiceSelect.value = voices.some(v => v.voiceURI === preferredVoice) ? preferredVoice : '';
     speechStatus.textContent = !speaker.supported ? 'เบราว์เซอร์นี้ไม่รองรับเสียงอ่าน' :
-      voices.length ? 'พร้อมทดสอบเสียงอ่าน กดฟังตัวอย่างได้เลย' : 'รายชื่อเสียงยังไม่พร้อม กดฟังตัวอย่างเพื่อให้ระบบลองเสียงภาษาที่เลือก';
+      voices.length ? 'พร้อมทดสอบเสียงอ่าน กดฟังตัวอย่างได้เลย' : voiceLangSelect.value === 'th-TH' ? 'ไม่พบเสียงภาษาไทย กรุณาติดตั้งเสียงไทยในอุปกรณ์ แล้วเปิดเว็บใหม่' : 'รายชื่อเสียงยังไม่พร้อม กดฟังตัวอย่างเพื่อทดสอบ';
   }
   voiceSelect.addEventListener('change', () => { preferredVoice = voiceSelect.value; });
   voiceLangSelect.addEventListener('change', () => { preferredVoice = ''; speaker.cancel(); refreshVoices(); });
