@@ -64,16 +64,37 @@ with sync_playwright() as p:
     page.wait_for_timeout(150)
     assert page.locator('#numberDisplay').inner_text()=='เริ่ม?'
     assert page.evaluate('window.activeSpeech===null')
-    # Missing voices should explain the prerequisite and preserve a silent game.
+    # An empty voice list must still attempt language-based OS speech.
     page.evaluate('window.voiceList=[]')
     page.click('#settingsToggle')
     page.click('#testSpeechBtn')
-    assert 'ไม่พบเสียง' in page.locator('#speechStatus').inner_text()
+    assert page.evaluate('spoken[spoken.length-1].lang') == 'th-TH'
+    assert page.evaluate('activeSpeech !== null')
+    page.wait_for_timeout(60)
     page.click('#startBtn')
     page.wait_for_function("document.querySelector('#numberDisplay').textContent==='ครบ 1 ข้อแล้ว'", timeout=15000)
     assert not errors, errors
     unsupported=browser.new_page()
     unsupported.add_init_script("Object.defineProperty(window,'speechSynthesis',{value:undefined}); delete window.speechSynthesis;")
+    # Locale formats used by some device speech providers must match Thai.
+    result = page.evaluate("""async () => {
+      window.voiceList=[{name:'Thai underscore',lang:'th_TH',voiceURI:'thai-underscore'}];
+      const s=new KFMASpeech.Speaker(); s.enabled=true;
+      const matches=s.voices().length;
+      await s.speak('ทดสอบ');
+      return matches;
+    }""")
+    assert result == 1
+    # A confirmed missing language is reported, rather than silently ignored.
+    error = page.evaluate("""async () => {
+      const s=new KFMASpeech.Speaker(text=>window.speechError=text);
+      s.enabled=true; window.holdNumbers=true;
+      const pending=s.speak('123');
+      window.activeSpeech.onerror({error:'language-unavailable'});
+      await pending; s.cancel();
+      return window.speechError;
+    }""")
+    assert 'ติดตั้งเสียงภาษาไทย' in error
     # Test the adapter's unsupported branch without depending on browser property configurability.
     unsupported.goto(BASE)
     result=unsupported.evaluate("""async () => {

@@ -18,6 +18,7 @@
     if (Array.isArray(text)) text = text[Math.floor(Math.random() * text.length)];
     return text.replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? ''));
   }
+  const languageCode = lang => String(lang || '').toLowerCase().replace(/_/g, '-').split('-')[0];
   class Speaker {
     constructor(onStatus = () => {}) {
       this.onStatus = onStatus;
@@ -28,10 +29,10 @@
       this.volume = 0.8;
       this.finish = null;
     }
-    get supported() { return 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window; }
+    get supported() { return !!window.speechSynthesis && typeof window.SpeechSynthesisUtterance === 'function'; }
     voices() {
       return this.supported ? window.speechSynthesis.getVoices().filter(v =>
-        v.lang.toLowerCase().split('-')[0] === this.lang.toLowerCase().split('-')[0]) : [];
+        languageCode(v.lang) === languageCode(this.lang)) : [];
     }
     cancel() {
       if (this.finish) this.finish();
@@ -45,14 +46,14 @@
         return Promise.resolve();
       }
       const voices = window.speechSynthesis.getVoices().filter(v =>
-        v.lang.toLowerCase().split('-')[0] === lang.toLowerCase().split('-')[0]);
-      if (!voices.length) {
-        this.onStatus('ไม่พบเสียงภาษา ' + lang + ' กรุณาติดตั้งเสียงภาษานี้ในอุปกรณ์ แล้วเปิดหน้าเว็บใหม่');
-        return Promise.resolve();
-      }
+        languageCode(v.lang) === languageCode(lang));
+      // Mobile browsers can expose an empty voice list until the first utterance.
+      // Let the OS resolve utterance.lang instead of treating an empty list as failure.
+      if (!voices.length) this.onStatus('กำลังลองเสียงภาษาที่เลือกผ่านระบบของอุปกรณ์');
       return new Promise(resolve => {
         const utterance = new SpeechSynthesisUtterance(String(text));
-        utterance.voice = voices.find(v => v.voiceURI === this.voiceURI) || voices.find(v => v.default) || voices[0];
+        const voice = voices.find(v => v.voiceURI === this.voiceURI) || voices.find(v => v.default) || voices[0];
+        if (voice) utterance.voice = voice;
         utterance.lang = lang;
         utterance.rate = this.rate;
         utterance.volume = this.volume;
@@ -70,14 +71,28 @@
           this.onStatus('เสียงอ่านไม่ตอบสนอง เล่นต่อโดยไม่มีเสียงข้อความนี้');
         }, 20000);
         this.finish = finish;
-        utterance.onend = finish;
+        utterance.onstart = () => this.onStatus('กำลังอ่านด้วยเสียง ' + (voice ? voice.name : lang));
+        utterance.onend = () => {
+          if (!done) this.onStatus('อ่านเสียงจบแล้ว');
+          finish();
+        };
         utterance.onerror = event => {
-          if (!['canceled', 'interrupted'].includes(event.error)) this.onStatus('เล่นเสียงไม่ได้ กรุณาลองทดสอบเสียงอีกครั้ง');
+          if (done) return;
+          if (['language-unavailable', 'voice-unavailable', 'synthesis-unavailable'].includes(event.error)) {
+            this.onStatus('อุปกรณ์ยังไม่มีเสียงภาษาที่เลือก กรุณาติดตั้งเสียงภาษาไทยในระบบ แล้วเปิดเว็บใหม่');
+          } else if (event.error === 'not-allowed') {
+            this.onStatus('เบราว์เซอร์ยังไม่อนุญาตเสียง กรุณากดฟังตัวอย่างอีกครั้ง หรือเปิดเว็บใน Safari / Chrome โดยตรง');
+          } else if (!['canceled', 'interrupted'].includes(event.error)) {
+            this.onStatus('เล่นเสียงไม่ได้ (' + event.error + ') กรุณาลองทดสอบเสียงอีกครั้ง');
+          }
           finish();
         };
         // Keep the utterance alive until the browser finishes speaking.
         this.utterance = utterance;
-        try { window.speechSynthesis.speak(utterance); }
+        try {
+          if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+          window.speechSynthesis.speak(utterance);
+        }
         catch (_) { this.onStatus('เล่นเสียงไม่ได้ ยังเล่นแบบไม่มีเสียงได้'); finish(); }
       });
     }
