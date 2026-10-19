@@ -1,4 +1,4 @@
-/* Browser speech adapter. No API keys or external model service required. */
+/* Bundled Thai audio; native browser speech for the other languages. */
 (function () {
   'use strict';
   const messages = {
@@ -28,30 +28,30 @@
       this.rate = 0.9;
       this.volume = 0.8;
       this.finish = null;
+      this.thaiAudio = new KFMAThaiAudio.ThaiAudio(onStatus);
     }
-    get supported() { return !!window.speechSynthesis && typeof window.SpeechSynthesisUtterance === 'function'; }
+    get nativeSupported() { return !!window.speechSynthesis && typeof window.SpeechSynthesisUtterance === 'function'; }
+    get supported() { return languageCode(this.lang) === 'th' ? this.thaiAudio.supported : this.nativeSupported; }
     voices() {
-      return this.supported ? window.speechSynthesis.getVoices().filter(v =>
+      if (languageCode(this.lang) === 'th') return this.thaiAudio.supported ? [{name: 'เสียงไทยของเว็บ (ไม่ต้องติดตั้ง)', lang: 'th-TH', voiceURI: 'kfma-thai-files', default: true}] : [];
+      return this.nativeSupported ? window.speechSynthesis.getVoices().filter(v =>
         languageCode(v.lang) === languageCode(this.lang)) : [];
     }
     cancel() {
+      this.thaiAudio.cancel();
       if (this.finish) this.finish();
-      if (this.supported) window.speechSynthesis.cancel();
+      if (this.nativeSupported) window.speechSynthesis.cancel();
     }
     speak(text, {lang = this.lang, preview = false} = {}) {
       this.cancel();
       if (!this.enabled && !preview) return Promise.resolve();
-      if (!this.supported) {
+      if (languageCode(lang) === 'th') return this.thaiAudio.speak(text, this.rate, this.volume);
+      if (!this.nativeSupported) {
         this.onStatus('เบราว์เซอร์นี้ไม่รองรับเสียงอ่าน ยังเล่นแบบไม่มีเสียงได้');
         return Promise.resolve();
       }
       const voices = window.speechSynthesis.getVoices().filter(v =>
         languageCode(v.lang) === languageCode(lang));
-      // Do not let the OS substitute a non-Thai default voice for Thai text.
-      if (languageCode(lang) === 'th' && !voices.length) {
-        this.onStatus('ไม่พบเสียงภาษาไทยในอุปกรณ์ จึงไม่ใช้เสียงภาษาอื่นแทน กรุณาติดตั้งเสียงไทยในระบบ แล้วเปิดเว็บใหม่');
-        return Promise.resolve();
-      }
       return new Promise(resolve => {
         const utterance = new SpeechSynthesisUtterance(String(text));
         const voice = voices.find(v => v.voiceURI === this.voiceURI) || voices.find(v => v.default) || voices[0];
@@ -81,7 +81,7 @@
         utterance.onerror = event => {
           if (done) return;
           if (['language-unavailable', 'voice-unavailable', 'synthesis-unavailable'].includes(event.error)) {
-            this.onStatus('อุปกรณ์ยังไม่มีเสียงภาษาที่เลือก กรุณาติดตั้งเสียงภาษาไทยในระบบ แล้วเปิดเว็บใหม่');
+            this.onStatus('อุปกรณ์ยังไม่มีเสียงภาษาที่เลือก กรุณาติดตั้งเสียงภาษานี้ในระบบ แล้วเปิดเว็บใหม่');
           } else if (event.error === 'not-allowed') {
             this.onStatus('เบราว์เซอร์ยังไม่อนุญาตเสียง กรุณากดฟังตัวอย่างอีกครั้ง หรือเปิดเว็บใน Safari / Chrome โดยตรง');
           } else if (!['canceled', 'interrupted'].includes(event.error)) {

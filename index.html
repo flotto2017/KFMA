@@ -452,7 +452,7 @@
 
       <div style="max-height: 180px; overflow-y: auto;" aria-label="ตั้งค่าเสียงอ่าน">
       <div class="settings-row">
-        <label for="voiceSelect">เสียงของอุปกรณ์</label>
+        <label for="voiceSelect">เสียงอ่าน</label>
         <select id="voiceSelect"><option value="">อัตโนมัติ</option></select>
       </div>
       <div class="settings-row">
@@ -477,7 +477,7 @@
         <button id="testSpeechBtn" type="button">ฟังตัวอย่าง</button>
         <button id="stopSpeechBtn" type="button">หยุดเสียงตัวอย่าง</button>
       </div>
-      <div class="small-note">ใช้เสียงสังเคราะห์ของอุปกรณ์ เสียงแต่ละเครื่องอาจต่างกัน<br>
+      <div class="small-note">เสียงไทยเล่นจากไฟล์ของเว็บ ไม่ต้องติดตั้งเสียงเพิ่ม<br>
         คำชมและคำให้กำลังใจเป็นตัวอย่างสำหรับเชื่อมระบบตรวจคำตอบในอนาคต</div>
       </div>
 
@@ -504,7 +504,9 @@
   </div>
 </div>
 
-<script src="speech.js?v=3"></script>
+<script src="audio/th/manifest.js?v=1"></script>
+<script src="thai-audio.js?v=1"></script>
+<script src="speech.js?v=4"></script>
 <script>
 (function(){
   "use strict";
@@ -555,7 +557,7 @@
     voices.forEach(v => voiceSelect.add(new Option(v.name, v.voiceURI)));
     voiceSelect.value = voices.some(v => v.voiceURI === preferredVoice) ? preferredVoice : '';
     speechStatus.textContent = !speaker.supported ? 'เบราว์เซอร์นี้ไม่รองรับเสียงอ่าน' :
-      voices.length ? 'พร้อมทดสอบเสียงอ่าน กดฟังตัวอย่างได้เลย' : voiceLangSelect.value === 'th-TH' ? 'ไม่พบเสียงภาษาไทย กรุณาติดตั้งเสียงไทยในอุปกรณ์ แล้วเปิดเว็บใหม่' : 'รายชื่อเสียงยังไม่พร้อม กดฟังตัวอย่างเพื่อทดสอบ';
+      voices.length ? (voiceLangSelect.value === 'th-TH' ? 'พร้อมใช้เสียงไทยของเว็บ กดฟังตัวอย่างได้เลย' : 'พร้อมทดสอบเสียงอ่าน กดฟังตัวอย่างได้เลย') : 'รายชื่อเสียงยังไม่พร้อม กดฟังตัวอย่างเพื่อทดสอบ';
   }
   voiceSelect.addEventListener('change', () => { preferredVoice = voiceSelect.value; });
   voiceLangSelect.addEventListener('change', () => { preferredVoice = ''; speaker.cancel(); refreshVoices(); });
@@ -568,7 +570,7 @@
   document.getElementById('stopSpeechBtn').addEventListener('click', () => {
     if (!running) speaker.cancel();
   });
-  if (speaker.supported) window.speechSynthesis.addEventListener('voiceschanged', refreshVoices);
+  if (window.speechSynthesis) window.speechSynthesis.addEventListener('voiceschanged', refreshVoices);
 
 
   const settingsToggle = document.getElementById("settingsToggle");
